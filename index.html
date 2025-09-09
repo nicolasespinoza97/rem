@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Generador de fórmulas Excel - Rem_SSA 2025</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: Inter, Arial, sans-serif; max-width:900px; margin:30px auto; padding:20px; background:#f7f9fb; color:#222; }
+    h1 { margin:0 0 10px 0; }
+    label { display:block; margin-top:12px; font-weight:600; }
+    input[type=text], textarea { width:100%; padding:8px; box-sizing:border-box; margin-top:6px; font-family: monospace; }
+    .row { display:flex; gap:12px; }
+    .col { flex:1; }
+    button { margin-top:14px; padding:10px 14px; border:0; background:#1769aa; color:#fff; border-radius:6px; cursor:pointer; }
+    button.secondary { background:#666; }
+    textarea { height:160px; }
+    small { color:#555; }
+  </style>
+</head>
+<body>
+  <h1>Generador de fórmulas Excel</h1>
+  <p>Rellena los campos y pulsa <strong>Generar fórmula</strong>. Luego copia y pega en Excel.</p>
+
+  <label for="establecimiento">Código de establecimiento</label>
+  <input id="establecimiento" type="text" placeholder="Ej: 108101A01" />
+
+  <label for="hoja">Hoja interna (sheet)</label>
+  <input id="hoja" type="text" placeholder="Ej: A01" />
+
+  <label for="celda">Celda (ej: D12)</label>
+  <input id="celda" type="text" placeholder="Ej: D12" />
+
+  <button onclick="generarFormula()">Generar fórmula</button>
+  <button class="secondary" onclick="limpiar()">Limpiar</button>
+
+  <label for="resultado" style="margin-top:14px;">Fórmula generada</label>
+  <textarea id="resultado" readonly></textarea>
+
+  <div style="margin-top:8px;">
+    <button onclick="copiar()">Copiar al portapapeles</button>
+    <button onclick="descargar()" class="secondary">Descargar .txt</button>
+  </div>
+
+  <script>
+    function generarFormula() {
+      const establecimiento = document.getElementById("establecimiento").value.trim();
+      const hoja = document.getElementById("hoja").value.trim();
+      const celda = document.getElementById("celda").value.trim();
+
+      if (!establecimiento || !hoja || !celda) {
+        alert("Completa todos los campos.");
+        return;
+      }
+
+      const rutaBase = "'\\\\10.8.89.18\\Rem_SSA\\Rem2025\\";
+      let formula = "=";
+
+      for (let i = 1; i <= 12; i++) {
+        const mes = "Rem" + (i < 10 ? "0" + i : i);
+        const archivo = establecimiento + ".xlsm";
+        let parte = rutaBase + mes + "\\A\\[" + archivo + "]" + hoja + "'!" + celda;
+        formula += parte;
+        if (i < 12) formula += "+";
+      }
+
+      document.getElementById("resultado").value = formula;
+    }
+
+    function copiar() {
+      const t = document.getElementById("resultado");
+      t.select();
+      t.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        alert("Fórmula copiada al portapapeles. Pégala en Excel.");
+      } catch (e) {
+        alert("No se pudo copiar automáticamente. Selecciona y copia manualmente.");
+      }
+    }
+
+    function descargar() {
+      const contenido = document.getElementById("resultado").value;
+      if (!contenido) { alert("No hay fórmula generada."); return; }
+      const blob = new Blob([contenido], {type: 'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'formula.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function limpiar() {
+      document.getElementById("establecimiento").value = "";
+      document.getElementById("hoja").value = "";
+      document.getElementById("celda").value = "";
+      document.getElementById("resultado").value = "";
+    }
+  </script>
+</body>
+</html>
